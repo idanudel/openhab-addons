@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="honeywellhome"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+	<bridge-type id="account">
+		<label>Honeywell Home Account Binding Thing</label>
+		<description>Sample thing for Honeywell Home Account Binding</description>
+
+		<config-description>
+			<parameter name="consumerKey" type="text" required="true">
+				<label>Consumer Key</label>
+				<description>Consumer Key</description>
+			</parameter>
+			<parameter name="consumerSecret" type="text" required="true">
+				<context>password</context>
+				<label>Consumer Secret</label>
+				<description>Consumer Secret</description>
+			</parameter>
+			<parameter name="token" type="text" required="true">
+				<context>password</context>
+				<label>Token</label>
+				<description>Token</description>
+			</parameter>
+			<parameter name="refreshToken" type="text" required="true">
+				<context>password</context>
+				<label>Refresh Token</label>
+				<description>Refresh Token</description>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<thing-type id="thermostat">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="honeywellhomeaccount"/>
+		</supported-bridge-type-refs>
+		<label>Honeywell Home Thermostat Binding Thing</label>
+		<description>Sample thing for Honeywell Home Thermostat Binding</description>
+		<channels>
+			<channel id="coolSetPoint" typeId="coolSetPoint-channel"/>
+		</channels>
+		<config-description>
+			<parameter name="locationId" type="text" required="true">
+				<label>Location Id</label>
+				<description>Location Id</description>
+			</parameter>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device Id</label>
+				<description>Device Id</description>
+			</parameter>
+			<parameter name="refreshInterval" type="integer" unit="s" min="1">
+				<label>Refresh Interval</label>
+				<description>Interval the device is polled in sec.</description>
+				<default>600</default>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+
+	</thing-type>
+
+	<channel-type id="coolSetPoint">
+		<item-type>Number:Temperature</item-type>
+		<label>Cool Set Point</label>
+		<description>Cool Set Point for Honeywell Home Thermostat Binding</description>
+	</channel-type>
+</thing:thing-descriptions>
