@@ -32,6 +32,10 @@ public class HoneywellHomeBindingConstants {
 
     // List of all Channel ids
     public static final String COOL_SET_POINT = "coolSetPoint";
+    public static final String HEAT_SET_POINT = "heatSetpoint";
+    public static final String THERMOSTAT_SET_POINT_STATUS = "thermostatSetpointStatus";
+    public static final String HEAT_COOL_MODE = "heatCoolMode";
+    public static final String MODE = "mode";
 
     public static final String LOCATION_ID = "locationId";
     public static final String DEVICE_ID = "deviceId";

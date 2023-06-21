@@ -13,9 +13,11 @@
 package org.openhab.binding.honeywellhome.internal.handler;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.honeywellhome.client.HoneywellClient;
 import org.openhab.binding.honeywellhome.client.api.response.GetThermostatsStatusResponse;
 import org.openhab.binding.honeywellhome.internal.HoneywellHomeThermostatConfiguration;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.openhab.binding.honeywellhome.internal.HoneywellHomeBindingConstants.COOL_SET_POINT;
+import static org.openhab.binding.honeywellhome.internal.HoneywellHomeBindingConstants.*;
 
 /**
  * The {@link HoneywellThermostatHandler} is responsible for handling commands, which are
@@ -53,15 +55,13 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (COOL_SET_POINT.equals(channelUID.getId())) {
             if (command instanceof RefreshType) {
-                // TODO: handle data refresh
+                startRefreshTask();
             }
 
-            // TODO: handle command
+            if(command.toString().equals("state")) {
+                getHoneywellClient().changeThermostatsSetting("", "", "", 0, 0, "");
+            }
 
-            // Note: if communication with thing fails for some reason,
-            // indicate that by setting the status with detail information:
-            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-            // "Could not control device at IP address x.x.x.x");
         }
     }
 
@@ -76,7 +76,7 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
     private void startRefreshTask() {
         disposeRefreshTask();
         int currentRefreshInterval = 10; //todo add validation
-        refreshTask = scheduler.scheduleWithFixedDelay(this::update, 0, currentRefreshInterval, TimeUnit.SECONDS);
+        refreshTask = scheduler.scheduleWithFixedDelay(this::update, 0, currentRefreshInterval, TimeUnit.SECONDS); //todo make sure it's keep running in case of any failure
     }
 
     private void disposeRefreshTask() {
@@ -88,10 +88,25 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
     }
 
     private void update() {
-        String locationId = config.locationId;
-        String deviceId = config.deviceId;
+        try {
+            String locationId = config.locationId;
+            String deviceId = config.deviceId;
+            if(getHoneywellClient() != null) {
+                GetThermostatsStatusResponse getThermostatsStatusResponse = getHoneywellClient().getThermostatsDevice(deviceId, locationId);
+                updateState(COOL_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.coolSetpoint));
+                updateState(HEAT_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.heatSetpoint));
+                updateState(THERMOSTAT_SET_POINT_STATUS, new StringType(getThermostatsStatusResponse.changeableValues.thermostatSetpointStatus));
+                updateState(HEAT_COOL_MODE, new StringType(getThermostatsStatusResponse.changeableValues.heatCoolMode));
+                updateState(MODE, new StringType(getThermostatsStatusResponse.changeableValues.mode));
+            }
+        } catch (Exception e) {
+            logger.error("Got error on Thermostat Handler update method", e);
+        }
+
+    }
+
+    private HoneywellClient getHoneywellClient() {
         HoneywellHomeHandler honeywellHomeHandler = (HoneywellHomeHandler)getBridge().getHandler(); // todo make it safe
-        GetThermostatsStatusResponse getThermostatsStatusResponse = honeywellHomeHandler.getHoneywellClient().getThermostatsDevice(deviceId, locationId);
-        updateState(COOL_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.coolSetpoint));
+        return honeywellHomeHandler.getHoneywellClient();
     }
 }

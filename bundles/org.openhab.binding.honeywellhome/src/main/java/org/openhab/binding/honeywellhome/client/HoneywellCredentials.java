@@ -13,6 +13,9 @@ public class HoneywellCredentials {
         this.consumerSecret = consumerSecret;
         this.accessToken = accessToken;
     }
+    public HoneywellCredentials(boolean isValid) {
+        this.isValid = isValid;
+    }
 
     public String getConsumerKey() {
         return consumerKey;

@@ -69,10 +69,9 @@ public class HoneywellHomeHandler extends BaseBridgeHandler {
             String refreshToken = config.refreshToken;
 
             try {
-                updateStatus(ThingStatus.INITIALIZING);
                 logger.debug("Initializing HoneywellClient with consumerKey: {}, consumerSecret: {}, token: {}, refreshToken: {}", consumerKey, consumerSecret, token,
                         refreshToken);
-                this.honeywellClient = new HoneywellClient(this.httpClient, consumerKey, consumerSecret, token,
+                this.honeywellClient = new HoneywellClient(scheduler, this.httpClient, consumerKey, consumerSecret, token,
                         refreshToken);
                 if (this.honeywellClient.isValid()) {
                     updateStatus(ThingStatus.ONLINE);
