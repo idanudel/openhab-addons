@@ -75,7 +75,7 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
 
     private void startRefreshTask() {
         disposeRefreshTask();
-        int currentRefreshInterval = 10; //todo add validation
+        int currentRefreshInterval = 10; //todo add validation and pull from config
         refreshTask = scheduler.scheduleWithFixedDelay(this::update, 0, currentRefreshInterval, TimeUnit.SECONDS); //todo make sure it's keep running in case of any failure
     }
 
