@@ -6,6 +6,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpMethod;
+import org.openhab.binding.honeywellhome.client.api.pojo.ChangeableValues;
 import org.openhab.binding.honeywellhome.client.api.request.ChangeThermostatsSettingRequest;
 import org.openhab.binding.honeywellhome.client.api.response.GetAllLocationsResponse;
 import org.openhab.binding.honeywellhome.client.api.response.GetThermostatsStatusResponse;
@@ -91,18 +92,19 @@ public class HoneywellClient {
         return null;
     }
 
-    public boolean changeThermostatsSetting (String thermostatId, String locationId, String mode, int heatSetpoint, int coolSetpoint, String thermostatSetpointStatus) {
-        return changeThermostatsSetting(thermostatId, locationId, mode, heatSetpoint, coolSetpoint, thermostatSetpointStatus, false);
+    public boolean changeThermostatsSetting (String thermostatId, String locationId, ChangeableValues changeableValues) {
+        return changeThermostatsSetting(thermostatId, locationId, changeableValues, false);
     }
 
-    private boolean changeThermostatsSetting (String thermostatId, String locationId, String mode, int heatSetpoint, int coolSetpoint, String thermostatSetpointStatus, boolean isRetry) {
+    private boolean changeThermostatsSetting (String thermostatId, String locationId, ChangeableValues changeableValues, boolean isRetry) {
         try {
             String accessToken = this.honeywellAuthProvider.getHoneywellCredentials().accessToken;
             String url = String.format(HONEYWELL_POST_THERMOSTAT_STATUS, thermostatId, this.honeywellAuthProvider.consumerKey, locationId);
-            StringContentProvider contentProvider = new StringContentProvider(gson.toJson(new ChangeThermostatsSettingRequest(mode, heatSetpoint, coolSetpoint, thermostatSetpointStatus)));
+            StringContentProvider contentProvider = new StringContentProvider(gson.toJson(new ChangeThermostatsSettingRequest(changeableValues)));
             ContentResponse contentResponse = this.httpClient.newRequest(url)
-                    .method(HttpMethod.POST).header("Authorization", "Bearer " + accessToken)
-                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .method(HttpMethod.POST)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Content-Type", "application/json")
                     .content(contentProvider)
                     .send();
             if(contentResponse.getStatus() == 200) {
@@ -111,7 +113,7 @@ public class HoneywellClient {
             }
             if(contentResponse.getStatus() == 401 && isRetry == false) {
                 this.honeywellAuthProvider.refreshToken();
-                return changeThermostatsSetting(thermostatId, locationId, mode, heatSetpoint, coolSetpoint, thermostatSetpointStatus, true);
+                return changeThermostatsSetting(thermostatId, locationId, changeableValues, true);
             }
             else {
                 logger.error("Got error response: {} while trying to Change Honeywell Thermostats Setting by Device id: {} in location: {}", contentResponse.getStatus(), thermostatId, locationId);

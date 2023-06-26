@@ -68,7 +68,7 @@ public class HoneywellAuthProvider {
                 this.refreshToken = getTokenResponse.getRefreshToken();
                 String expiresInSecAsString = getTokenResponse.getExpiresIn();
                 try {
-                    expiresInSecAsInt = expiresInSecAsString != null ? Integer.parseInt(expiresInSecAsString) : expiresInSecAsInt;
+                    expiresInSecAsInt = expiresInSecAsString != null ? Integer.parseInt(expiresInSecAsString) - 60 : expiresInSecAsInt; // -60 for some grace time.
                 } catch (Exception e) {
                     logger.error("Got error while trying convert expiresIn: {} as String to int - will use default: {}", expiresInSecAsString, expiresInSecAsInt, e);
                 }

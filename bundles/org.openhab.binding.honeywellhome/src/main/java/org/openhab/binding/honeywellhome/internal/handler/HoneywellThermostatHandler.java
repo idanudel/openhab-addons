@@ -14,9 +14,12 @@ package org.openhab.binding.honeywellhome.internal.handler;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.honeywellhome.client.HoneywellClient;
+import org.openhab.binding.honeywellhome.client.api.pojo.ChangeableValues;
 import org.openhab.binding.honeywellhome.client.api.response.GetThermostatsStatusResponse;
 import org.openhab.binding.honeywellhome.internal.HoneywellHomeThermostatConfiguration;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -27,6 +30,8 @@ import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +47,10 @@ import static org.openhab.binding.honeywellhome.internal.HoneywellHomeBindingCon
 public class HoneywellThermostatHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(HoneywellThermostatHandler.class);
+    private final int MIN_REFRESH_INTERVAL = 15;
+    private final int DEFAULT_REFRESH_INTERVAL = 20;
+    private ChangeableValues changeableValuesState;
+
 
     private @Nullable HoneywellHomeThermostatConfiguration config;
 
@@ -53,16 +62,33 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (COOL_SET_POINT.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
-                startRefreshTask();
-            }
-
-            if(command.toString().equals("state")) {
-                getHoneywellClient().changeThermostatsSetting("", "", "", 0, 0, "");
-            }
-
+        //todo put command on Q and fire them one after another to avoid data overwrite
+        //todo make sure this handler is only for T5-T6 thermostat type
+        String locationId = config.locationId;
+        String deviceId = config.deviceId;
+        if (command instanceof RefreshType) {
+            startRefreshTask();
+            return;
         }
+        if (command instanceof QuantityType) {
+            if (COOL_SET_POINT.equals(channelUID.getId())) {
+                this.changeableValuesState.coolSetpoint = ((QuantityType<?>) command).intValue();
+                this.getHoneywellClient().changeThermostatsSetting(deviceId, locationId, this.changeableValuesState);
+            }
+            if (HEAT_SET_POINT.equals(channelUID.getId())) {
+                this.changeableValuesState.heatSetpoint = ((QuantityType<?>) command).intValue();
+                this.getHoneywellClient().changeThermostatsSetting(deviceId, locationId, this.changeableValuesState);
+            }
+        }
+        if (HEAT_COOL_MODE.equals(channelUID.getId())) {
+            this.changeableValuesState.heatCoolMode = command.toString();
+            this.getHoneywellClient().changeThermostatsSetting(deviceId, locationId, this.changeableValuesState);
+        }
+        if (MODE.equals(channelUID.getId())) {
+            this.changeableValuesState.mode = command.toString();
+            this.getHoneywellClient().changeThermostatsSetting(deviceId, locationId, this.changeableValuesState);
+        }
+
     }
 
     @Override
@@ -73,10 +99,18 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
 
     }
 
+    @Override
+    public void handleRemoval() {
+        super.handleRemoval();
+    }
+
     private void startRefreshTask() {
         disposeRefreshTask();
-        int currentRefreshInterval = 10; //todo add validation and pull from config
-        refreshTask = scheduler.scheduleWithFixedDelay(this::update, 0, currentRefreshInterval, TimeUnit.SECONDS); //todo make sure it's keep running in case of any failure
+        if(config.refreshInterval != -1) { // -1 to disable update
+            int currentRefreshInterval = config.refreshInterval < MIN_REFRESH_INTERVAL ? DEFAULT_REFRESH_INTERVAL : config.refreshInterval;
+            logger.info("Starting Honeywell Thermostat Refresh Task with refresh interval: {}", currentRefreshInterval);
+            refreshTask = scheduler.scheduleWithFixedDelay(this::update, 0, currentRefreshInterval, TimeUnit.SECONDS);
+        }
     }
 
     private void disposeRefreshTask() {
@@ -87,26 +121,44 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
         }
     }
 
+    @Override
+    public void dispose() {
+        logger.info("Stopping Honeywell Thermostat Refresh Task");
+        super.dispose();
+        this.disposeRefreshTask();
+    }
+
     private void update() {
         try {
             String locationId = config.locationId;
             String deviceId = config.deviceId;
-            if(getHoneywellClient() != null) {
+            if (getHoneywellClient() != null) {
                 GetThermostatsStatusResponse getThermostatsStatusResponse = getHoneywellClient().getThermostatsDevice(deviceId, locationId);
-                updateState(COOL_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.coolSetpoint));
-                updateState(HEAT_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.heatSetpoint));
-                updateState(THERMOSTAT_SET_POINT_STATUS, new StringType(getThermostatsStatusResponse.changeableValues.thermostatSetpointStatus));
-                updateState(HEAT_COOL_MODE, new StringType(getThermostatsStatusResponse.changeableValues.heatCoolMode));
-                updateState(MODE, new StringType(getThermostatsStatusResponse.changeableValues.mode));
+                if(getThermostatsStatusResponse!=null) {
+                    updateStatus(ThingStatus.ONLINE);
+                    this.changeableValuesState = getThermostatsStatusResponse.changeableValues; // we need to store this data because in order to change one of the values we need to provide all of them;
+                    updateState(COOL_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.coolSetpoint));
+                    updateState(HEAT_SET_POINT, new DecimalType(getThermostatsStatusResponse.changeableValues.heatSetpoint));
+                    updateState(THERMOSTAT_SET_POINT_STATUS, new StringType(getThermostatsStatusResponse.changeableValues.thermostatSetpointStatus));
+                    updateState(HEAT_COOL_MODE, new StringType(getThermostatsStatusResponse.changeableValues.heatCoolMode));
+                    updateState(MODE, new StringType(getThermostatsStatusResponse.changeableValues.mode));
+                }
             }
         } catch (Exception e) {
+            updateStatus(ThingStatus.OFFLINE);
             logger.error("Got error on Thermostat Handler update method", e);
         }
 
     }
 
     private HoneywellClient getHoneywellClient() {
-        HoneywellHomeHandler honeywellHomeHandler = (HoneywellHomeHandler)getBridge().getHandler(); // todo make it safe
+        HoneywellHomeHandler honeywellHomeHandler = (HoneywellHomeHandler) getBridge().getHandler(); // todo make it safe
         return honeywellHomeHandler.getHoneywellClient();
+    }
+
+    @Override
+    public void handleConfigurationUpdate(Map<String, Object> configurationParameters) {
+        super.handleConfigurationUpdate(configurationParameters);
+        this.startRefreshTask();
     }
 }
