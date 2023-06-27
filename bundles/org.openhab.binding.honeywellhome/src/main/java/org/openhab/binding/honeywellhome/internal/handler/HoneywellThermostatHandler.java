@@ -49,7 +49,6 @@ public class HoneywellThermostatHandler extends BaseThingHandler {
     private final int DEFAULT_REFRESH_INTERVAL = 20;
     private ChangeableValues changeableValuesState;
 
-
     private @Nullable HoneywellHomeThermostatConfiguration config;
 
     protected @Nullable ScheduledFuture<?> refreshTask;
