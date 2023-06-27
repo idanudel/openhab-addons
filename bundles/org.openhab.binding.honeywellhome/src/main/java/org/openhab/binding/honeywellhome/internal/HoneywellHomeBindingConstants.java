@@ -30,13 +30,13 @@ public class HoneywellHomeBindingConstants {
     public static final ThingTypeUID THING_TYPE_HONEYWELLHOME_ACCOUNT = new ThingTypeUID(BINDING_ID, "account");
     public static final ThingTypeUID THING_TYPE_THERMOSTAT = new ThingTypeUID(BINDING_ID, "thermostat");
 
+    public static final String LOCATION_ID = "locationId";
+    public static final String DEVICE_ID = "deviceId";
+
     // List of all Channel ids
     public static final String COOL_SET_POINT = "coolSetPoint";
     public static final String HEAT_SET_POINT = "heatSetpoint";
     public static final String THERMOSTAT_SET_POINT_STATUS = "thermostatSetpointStatus";
     public static final String HEAT_COOL_MODE = "heatCoolMode";
     public static final String MODE = "mode";
-
-    public static final String LOCATION_ID = "locationId";
-    public static final String DEVICE_ID = "deviceId";
 }
