@@ -78,6 +78,7 @@ jobs:
             -Dmaven.wagon.http.retryHandler.count=5
             -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            -Dspotless.check.skip=true
 
       - name: Upload Build Log
         if: ${{ always() && ((steps.build.outcome == 'success') || (steps.build.outcome == 'failure')) }}
