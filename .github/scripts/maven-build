@@ -72,7 +72,7 @@ function addon_projects() {
     projects="$projects,:org.openhab.addons.bom.openhab-core-index,:org.openhab.addons.bom.runtime-index,:org.openhab.addons.bom.test-index"
 
     # exclude features
-    projects="$projects,-:org.openhab.addons.reactor.features.karaf,-:org.openhab.addons.features.karaf.openhab-addons,-:org.openhab.addons.features.karaf.openhab-addons-external"
+    #projects="$projects,-:org.openhab.addons.reactor.features.karaf,-:org.openhab.addons.features.karaf.openhab-addons,-:org.openhab.addons.features.karaf.openhab-addons-external"
 
     echo $projects
 }
