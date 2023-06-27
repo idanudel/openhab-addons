@@ -28,5 +28,5 @@ public class HoneywellHomeConfiguration {
     public String consumerKey = "";
     public String consumerSecret = "";
     public String token = "";
-    public String refreshToken = "";
+    public String refreshToken = ""; // todo, need to remove it
 }
