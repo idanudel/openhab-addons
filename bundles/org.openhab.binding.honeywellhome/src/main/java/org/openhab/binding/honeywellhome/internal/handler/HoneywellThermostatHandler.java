@@ -17,7 +17,6 @@ import org.openhab.binding.honeywellhome.client.HoneywellClient;
 import org.openhab.binding.honeywellhome.client.api.pojo.ChangeableValues;
 import org.openhab.binding.honeywellhome.client.api.response.GetThermostatsStatusResponse;
 import org.openhab.binding.honeywellhome.internal.HoneywellHomeThermostatConfiguration;
-import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
@@ -30,7 +29,6 @@ import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
