@@ -62,7 +62,7 @@ jobs:
           echo "::add-matcher::.github/openhab-compile-problems.json"
 
       - name: Get Changed Files
-        if: github.head_ref = ''
+        if: github.head_ref == ''
         id: files
         uses: Ana06/get-changed-files@v2.2.0
         with:

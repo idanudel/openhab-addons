@@ -26,12 +26,12 @@ public class HoneywellHomeBindingConstants {
 
     private static final String BINDING_ID = "honeywellhome";
 
+    public static final String LOCATION_ID = "locationId";
+    public static final String DEVICE_ID = "deviceId";
+
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_HONEYWELLHOME_ACCOUNT = new ThingTypeUID(BINDING_ID, "account");
     public static final ThingTypeUID THING_TYPE_THERMOSTAT = new ThingTypeUID(BINDING_ID, "thermostat");
-
-    public static final String LOCATION_ID = "locationId";
-    public static final String DEVICE_ID = "deviceId";
 
     // List of all Channel ids
     public static final String COOL_SET_POINT = "coolSetPoint";
