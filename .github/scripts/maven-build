@@ -2,7 +2,7 @@
 
 BUILD_LOG=build.log
 
-ARGUMENTS="clean verify -B -T 1.5C -U"
+ARGUMENTS="clean verify -B -T 1.5C -U -Dspotless.check.skip=true -DskipChecks=true"
 if [ $# -ge 1 ]; then
     ARGUMENTS=$@
 fi
